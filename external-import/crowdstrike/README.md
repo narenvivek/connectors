@@ -72,6 +72,9 @@ Below are the parameters you'll need to set for CrowdStrike Connector:
 | Indicator High Score          | `indicator_high_score`          | `CROWDSTRIKE_INDICATOR_HIGH_SCORE`          | /                             | No        | `80`                                                                 | If any of the low score labels are found on the indicator then this value is used as a score.                      |
 | Indicator High Score Labels   | `indicator_high_score_labels`   | `CROWDSTRIKE_INDICATOR_HIGH_SCORE_LABELS`   | /                             | No        | `MaliciousConfidence/High`                                           | The labels used to determine the low score indicators.                                                             |
 | Indicator Unwanted Labels     | `indicator_unwanted_labels`     | `CROWDSTRIKE_INDICATOR_UNWANTED_LABELS`     | /                             | No        | /                                                                    | Indicators to be excluded from import based on the labels affixed to them.                                         |
+| `CROWDSTRIKE_VULNERABILITY_START_TIMESTAMP` | CrowdStrike Connector | Unix timestamp from which to start enriching vulnerabilities. Default is 30 days ago. BEWARE: 0 means ALL vulnerabilities! | `` |
+| `CROWDSTRIKE_VULNERABILITY_MIN_CVSS_SCORE` | CrowdStrike Connector | Minimum CVSS score to enrich vulnerabilities (default 7.0) | `7.0` |
+| `CROWDSTRIKE_VULNERABILITY_INCLUDE_CLOSED` | CrowdStrike Connector | Whether to include closed vulnerabilities in enrichment | `false` |
 | Trigger file import           | `no_file_trigger_import`        | `CROWDSTRIKE_NO_FILE_TRIGGER_IMPORT`        | `true`                        | No        | /                                                                    | Specify whether the file can trigger its import by other document import connectors or not.                        |
 
 **Note**: It is not recommended to use the default value `0` for configuration parameters `report_start_timestamp` and `indicator_start_timestamp` because of the large data volumes.
@@ -107,3 +110,30 @@ To address this issue, set up two separate Crowdstrike connectors, each dedicate
 ### Summary
 
 By isolating the `yara_master` scope in a dedicated connector, you avoid slow ingestion rates and inaccurate state updates, ensuring efficient and stable data processing across all scopes.
+
+### Vulnerability Enrichment
+
+The vulnerability enrichment feature enriches existing CVEs in OpenCTI with CrowdStrike Spotlight intelligence rather than creating duplicate entries.
+
+**Key Features:**
+- Adds labels to existing MITRE CVEs with CrowdStrike-specific intelligence
+- Adds external references linking to CrowdStrike Falcon console
+- Only enriches high-value CVEs (CVSS >= 7.0 OR has exploit status OR status is 'open')
+
+**Labels Added:**
+- `crowdstrike-spotlight`: Vulnerability is tracked by CrowdStrike Spotlight
+- `crowdstrike-exploit-verified`: Verified exploit exists
+- `crowdstrike-exploit-poc`: Proof-of-concept exploit exists
+- `crowdstrike-status-open`: Vulnerability is open in your environment
+- `crowdstrike-status-closed`: Vulnerability is closed
+- `crowdstrike-high-priority`: High CVSS score + known exploit
+
+**Configuration:**
+```yaml
+CROWDSTRIKE_SCOPES: vulnerability  # Add to existing scopes
+CROWDSTRIKE_VULNERABILITY_START_TIMESTAMP: ""  # Leave empty for 30 days ago
+CROWDSTRIKE_VULNERABILITY_MIN_CVSS_SCORE: 7.0  # Minimum CVSS to enrich
+CROWDSTRIKE_VULNERABILITY_INCLUDE_CLOSED: false  # Include closed vulns
+```
+
+**Note:** This feature requires the MITRE CVE connector to be running to populate initial CVE data. The CrowdStrike connector then enriches these existing CVEs with additional intelligence.
