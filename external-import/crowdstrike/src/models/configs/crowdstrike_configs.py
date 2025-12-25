@@ -53,6 +53,7 @@ class _ConfigLoaderCrowdstrike(ConfigBaseSettings):
             "indicator",
             "yara_master",
             "snort_suricata_master",
+            "vulnerability",
         ],
         description=(
             "Comma-separated list of scopes to enable. "
@@ -106,6 +107,9 @@ class _ConfigLoaderCrowdstrike(ConfigBaseSettings):
         default_factory=_get_default_timestamp_30_days_ago,
         description="Unix timestamp from which to start importing indicators. Default is 30 days ago. BEWARE: 0 means ALL indicators!",
     )
+    vulnerability_start_timestamp: Optional[int] = Field(
+        default=None, validate_default=True
+    )
     indicator_exclude_types: Optional[ListFromString] = Field(
         default=["hash_ion", "hash_md5", "hash_sha1", "password", "username"],
         description="Comma-separated list of indicator types to exclude from import.",
@@ -144,6 +148,16 @@ class _ConfigLoaderCrowdstrike(ConfigBaseSettings):
             "Comma-separated list of unwanted labels to filter out indicators. "
             "Can be used to filter low confidence indicators: 'MaliciousConfidence/Low,MaliciousConfidence/Medium'."
         ),
+    )
+
+    # Vulnerability enrichment configuration
+    vulnerability_min_cvss_score: float = Field(
+        default=7.0,
+        description="Minimum CVSS score to enrich vulnerabilities. Default is 7.0."
+    )
+    vulnerability_include_closed: bool = Field(
+        default=False,
+        description="Whether to include closed vulnerabilities in enrichment."
     )
 
     # Trigger import configuration

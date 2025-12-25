@@ -16,7 +16,7 @@ services:
       - CROWDSTRIKE_TLP=amber+strict
       - CROWDSTRIKE_CREATE_OBSERVABLES=true
       - CROWDSTRIKE_CREATE_INDICATORS=true
-      - CROWDSTRIKE_SCOPES=actor,report,indicator,yara_master
+      - CROWDSTRIKE_SCOPES=actor,report,indicator,yara_master,vulnerability
       - CROWDSTRIKE_ACTOR_START_TIMESTAMP= # Unix timestamp. Leave empty for default (30 days ago). BEWARE! 0 means ALL actors!
       - CROWDSTRIKE_REPORT_START_TIMESTAMP= # Unix timestamp. Leave empty for default (30 days ago). BEWARE! 0 means ALL reports!
       - CROWDSTRIKE_REPORT_STATUS=New
@@ -35,5 +35,8 @@ services:
       - CROWDSTRIKE_INDICATOR_HIGH_SCORE=80
       - CROWDSTRIKE_INDICATOR_HIGH_SCORE_LABELS=MaliciousConfidence/High
       - CROWDSTRIKE_INDICATOR_UNWANTED_LABELS= # Can be used to filter low confidence indicators: "MaliciousConfidence/Low", "MaliciousConfidence/Medium"
+      - CROWDSTRIKE_VULNERABILITY_START_TIMESTAMP= # Unix timestamp. Leave empty for default (30 days ago). BEWARE! 0 means ALL vulnerabilities!
+      - CROWDSTRIKE_VULNERABILITY_MIN_CVSS_SCORE=7.0 # Minimum CVSS score to enrich (default 7.0)
+      - CROWDSTRIKE_VULNERABILITY_INCLUDE_CLOSED=false # Include closed vulnerabilities (default false)
       - CROWDSTRIKE_NO_FILE_TRIGGER_IMPORT=true
     restart: always

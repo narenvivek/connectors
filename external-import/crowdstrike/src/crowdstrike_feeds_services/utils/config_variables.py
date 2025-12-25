@@ -54,6 +54,15 @@ class ConfigCrowdstrike:
         self.indicator_start_timestamp = (
             self.config.crowdstrike.indicator_start_timestamp
         )
+        self.vulnerability_start_timestamp = (
+            self.config.crowdstrike.vulnerability_start_timestamp
+        )
+        self.vulnerability_min_cvss_score = (
+            self.config.crowdstrike.vulnerability_min_cvss_score
+        )
+        self.vulnerability_include_closed = (
+            self.config.crowdstrike.vulnerability_include_closed
+        )
 
         indicator_exclude_types = self.config.crowdstrike.indicator_exclude_types
         self.indicator_exclude_types = (
