@@ -181,6 +181,7 @@ class _ConfigLoaderCrowdstrike(ConfigBaseSettings):
         "actor_start_timestamp",
         "report_start_timestamp",
         "indicator_start_timestamp",
+        "vulnerability_start_timestamp",
         mode="before",
     )
     @staticmethod

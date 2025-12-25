@@ -1,16 +1,33 @@
 # -*- coding: utf-8 -*-
 """CrowdStrike Spotlight API client."""
 
-from typing import Any, Dict, List, Optional
-from .base_api import BaseCrowdstrikeClient
+import requests
+from typing import Any, Dict, Optional
+from falconpy import OAuth2
+from ..utils.config_variables import ConfigCrowdstrike
 
 
-class SpotlightAPI(BaseCrowdstrikeClient):
+class SpotlightAPI:
     """API client for CrowdStrike Spotlight vulnerabilities."""
 
     def __init__(self, helper):
         """Initialize Spotlight API client."""
-        super().__init__(helper)
+        self.config = ConfigCrowdstrike()
+        self.helper = helper
+        self.base_url = self.config.base_url
+        self.oauth = OAuth2(
+            client_id=self.config.client_id,
+            client_secret=self.config.client_secret,
+            base_url=self.base_url,
+        )
+        self.token = None
+
+    def _get_token(self) -> str:
+        """Get OAuth2 access token."""
+        if not self.token:
+            result = self.oauth.token()
+            self.token = result["body"]["access_token"]
+        return self.token
 
     def get_vulnerabilities(
         self,
@@ -19,53 +36,38 @@ class SpotlightAPI(BaseCrowdstrikeClient):
         filter_query: Optional[str] = None,
         sort: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """
-        Get vulnerabilities from Spotlight API.
-        
-        :param limit: Maximum number of records to return
-        :param offset: Starting index for pagination
-        :param filter_query: FQL query to filter results
-        :param sort: Sort order (e.g., 'created_timestamp|desc')
-        :return: Dict object containing API response
-        """
+        """Get vulnerabilities from Spotlight combined API."""
         params = {
             "limit": limit,
             "offset": offset,
+            "filter": filter_query,
         }
-        
-        if filter_query:
-            params["filter"] = filter_query
         if sort:
             params["sort"] = sort
 
-        # Use FalconPy's command method for Spotlight API
-        response = self.cs_intel.command(
-            action="queryCombinedVulnerabilities",
-            parameters=params
+        headers = {
+            "Authorization": f"Bearer {self._get_token()}",
+            "Accept": "application/json",
+        }
+
+        response = requests.get(
+            f"{self.base_url}/spotlight/combined/vulnerabilities/v1",
+            headers=headers,
+            params=params,
         )
-
-        self.handle_api_error(response)
-        self.helper.connector_logger.info(
-            f"Fetched {len(response.get('body', {}).get('resources', []))} vulnerabilities from Spotlight API"
-        )
-
-        return response["body"]
-
-    def get_vulnerability_details(self, cve_ids: List[str]) -> Dict[str, Any]:
-        """
-        Get detailed information for specific CVE IDs.
         
-        :param cve_ids: List of CVE IDs to query
-        :return: Dict object containing API response
-        """
-        response = self.cs_intel.command(
-            action="getCombinedVulnerabilities",
-            ids=cve_ids
-        )
-
-        self.handle_api_error(response)
+        if response.status_code >= 400:
+            error_msg = f"API error {response.status_code}: {response.text}"
+            self.helper.connector_logger.error(
+                "[API] Error fetching vulnerabilities",
+                {"error": error_msg},
+            )
+            return {"resources": [], "meta": {}}
+        
+        body = response.json()
+        resources = body.get("resources", [])
         self.helper.connector_logger.info(
-            f"Fetched details for {len(cve_ids)} vulnerabilities"
+            f"Fetched {len(resources)} vulnerabilities from Spotlight API"
         )
 
-        return response["body"]
+        return body
