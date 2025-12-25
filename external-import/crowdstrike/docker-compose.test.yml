@@ -1,0 +1,30 @@
+version: "3"
+services:
+  connector-crowdstrike-test:
+    image: crowdstrike-connector:vulnerability-test
+    environment:
+      - OPENCTI_URL=http://localhost:8080
+      - OPENCTI_TOKEN=26e3cf0a-55e9-4671-9cc7-4a3b6560ff0e
+      - CONNECTOR_ID=crowdstrike-test-vulnerability
+      - CONNECTOR_NAME=CrowdStrike Vulnerability Test
+      - CONNECTOR_SCOPE=crowdstrike
+      - CONNECTOR_LOG_LEVEL=info
+      - CONNECTOR_DURATION_PERIOD=PT60M
+      - CROWDSTRIKE_BASE_URL=https://api.crowdstrike.com
+      - CROWDSTRIKE_CLIENT_ID=5059d2fa28c44249a48021501e8a2eea
+      - CROWDSTRIKE_CLIENT_SECRET=erwmS4T17685XivRgfjWpOUhKkdbxJNc30Q9Y2ul
+      - CROWDSTRIKE_TLP=amber+strict
+      - CROWDSTRIKE_CREATE_OBSERVABLES=false
+      - CROWDSTRIKE_CREATE_INDICATORS=false
+      - CROWDSTRIKE_SCOPES=vulnerability
+      - CROWDSTRIKE_VULNERABILITY_START_TIMESTAMP=
+      - CROWDSTRIKE_VULNERABILITY_MIN_CVSS_SCORE=7.0
+      - CROWDSTRIKE_VULNERABILITY_INCLUDE_CLOSED=false
+      - CROWDSTRIKE_NO_FILE_TRIGGER_IMPORT=true
+    networks:
+      - opencti_default
+    restart: "no"
+
+networks:
+  opencti_default:
+    external: true
